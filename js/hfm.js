@@ -1,26 +1,22 @@
 var Node = (function(){
-    var binary = '';
-    var char = '';
     function _node(binary, char){
         var _this = this;
         if(_this instanceof _node){
             _this.binary = binary;
             _this.char = char;
-            _this.addLeftNode=function(left){
-                _this.left = left;
-            };
-            _this.addRightNode= function(right){
-                _this.right = right;
-            };
         }else{
             return new _node(binary,char);
         }
     }
     _node.prototype = {
         constructor: _node,
-        left:{},
-        right:{},
-        weight:0
+        type:'Node',
+        addLeftNode:function(left){
+            this.left = left;
+        },
+        addRightNode:function(right){
+            this.right = right;
+        }
     }
     return _node;
 })();
@@ -29,9 +25,7 @@ var CharMapNum = (function(char){
     function _cmn(char){
         var _this = this;
         if(_this instanceof _cmn){
-            _this.increase = function(){
-                _this.num++;
-            };
+            _this.num = 0;
             _this.instance = function(char){
                 _this.char = char;
             }(char)
@@ -41,8 +35,10 @@ var CharMapNum = (function(char){
     }
     _cmn.prototype = {
         constructor: _cmn,
-        char:'',
-        num:0
+        type:'CharMapNum',
+        increase:function(){
+            this.num++;
+        }
     }
     return _cmn;
 })();
@@ -51,8 +47,24 @@ var Hfm= (function(){
     function _hfm(){
         var _this = this;
         if(_this instanceof _hfm){
+            _this.nodes = [];
+            _this.size = 0;
+            _this.processNode=function(node){
+                _this.size ++;
+                if(_this.size<2){
+                    _this.addNode(node);
+                }else{
+                    
+                }
+                //_this.nodes = HfmUtil.asc();
+            };
             _this.addNode=function(node){
+                _this.size++;
                 _this.nodes.push(node);
+            };
+            _this.mergeNode=function(node){
+                _this.size--;
+
             }
         }else{
             return new _hfm();
@@ -60,59 +72,74 @@ var Hfm= (function(){
     }
     _hfm.prototype={
         constructor:_hfm,
-        nodes:[],
-        node:{name:'tom'}
+        type:'Hfm'
     }
     return _hfm;
 })();
+
 var CharMapCharAndNum=(function(char){
-    var list  = [];
     function _map( char){
         var _this = this;
         if(_this instanceof _map){
-            _this.addChar=function(char){
-                var cmu = _this[char]||_this.newInstanceCharMapNum(char);
-                cmu.increase();
-                _this[char] = cmu; 
-            };
-            _this.newInstanceCharMapNum=function(char){
-                _this.size ++;
-                return new CharMapNum(char);
-            };
-            _this.orderlyList=function(){
-                if(list.length==0){
-                    for(var i in _this){
-                        list.push(_this[i]);
-                    }
-                    var tempCMN = {};
-                    for(var i=0;i<list.length;i++){
-                        for(var j=i+1;j<list.length;j++){
-                            if(list[i].num <list[j].num){
-                                tempCMN = list[i];
-                                list[i] = list[j];
-                                list[j] = tempCMN;
-                            }
-                        }
-                    }
-                    return list;
-                }else{
-                    return list;
-                }
-            };
+            _this.size=0;
+            _this.list = [];
         }else{
             return new _map(binary,char);
         }
     }
     _map.prototype = {
         constructor: _map,
-        size:0
+        type:'CharMapCharAndNum',
+        addChar:function(char){
+            var cmu = this[char]||this.newInstanceCharMapNum(char);
+            cmu.increase();
+            this[char] = cmu; 
+        },
+        newInstanceCharMapNum:function(char){
+            this.size ++;
+            return new CharMapNum(char);
+        },
+        toList:function(){
+            if(this.list.length==0){
+                for(i in this){
+                    this.list.push(this[i]);
+                }
+            }
+            return this.list;
+        }
     }
     return _map;
 })();
 
-var CodeUtil = {
+var HfmUtil = {
     int2Binary:function (num){
         return '0001';
+    },
+    desc:function(list){
+        var tempCMN = {};
+        for(var i=0;i<list.length;i++){
+            for(var j=i+1;j<list.length;j++){
+                if(list[i].num <list[j].num){
+                    tempCMN = list[i];
+                    list[i] = list[j];
+                    list[j] = tempCMN;
+                }
+            }
+        }
+        return list;
+    },
+    asc:function(list){
+        var tempCMN = {};
+        for(var i=0;i<list.length;i++){
+            for(var j=i+1;j<list.length;j++){
+                if(list[i].num >list[j].num){
+                    tempCMN = list[i];
+                    list[i] = list[j];
+                    list[j] = tempCMN;
+                }
+            }
+        }
+        return list;
     }
 };
 
@@ -124,17 +151,9 @@ for(var i=0;i<base64String.length;i++){
 }
 
 var hfm = new Hfm();
-var list = cmcn.orderlyList();
+var list = HfmUtil.desc(cmcn.toList());
 for(cmn of list){
-    var node  = new Node(CodeUtil.int2Binary(cmn.num),cmn.char);
-    hfm.addNode(cmn);
+    var node  = new Node(HfmUtil.int2Binary(cmn.num),cmn.char);
+    hfm.addNode(node);
 }
-// console.log(hfm);
-var node = new Node('1','a');
-var node1 = new Node('2','b');
-var node2 = new Node('3','c');
-node.addLeftNode(node1);
-node.addRightNode(node2);
-console.log(node);
-
-
+console.log(hfm);
